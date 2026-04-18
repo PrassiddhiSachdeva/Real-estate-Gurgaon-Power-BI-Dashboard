@@ -1,1278 +1,513 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Real Estate Dashboard + AI Assistant</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap%22 rel="stylesheet"/>
-<style>
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
- 
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Power BI AI Assistant</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+  <style>
     :root {
-
-      --bg:        #0d0f14;
-
-      --surface:   #13161e;
-
-      --panel:     #181c26;
-
-      --border:    #252a38;
-
-      --accent:    #4f7cff;
-
-      --accent2:   #7c5cfc;
-
-      --text:      #e8eaf0;
-
-      --muted:     #6b7280;
-
-      --success:   #34d399;
-
-      --header-h:  56px;
-
-      --radius:    12px;
-
+      --bg: #0a0c10;
+      --panel: #111418;
+      --border: #1e2530;
+      --accent: #f5a623;
+      --accent2: #00d4ff;
+      --text: #e8edf5;
+      --muted: #5a6478;
+      --user-bubble: #1a2235;
+      --ai-bubble: #141a24;
+      --radius: 12px;
     }
- 
-    html, body {
 
-      height: 100%;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
+    body {
       background: var(--bg);
-
       color: var(--text);
-
-      font-family: 'DM Sans', sans-serif;
-
-      font-size: 14px;
-
-      overflow: hidden;
-
-    }
- 
-    /* ── TOP HEADER ── */
-
-    header {
-
-      height: var(--header-h);
-
-      background: var(--surface);
-
-      border-bottom: 1px solid var(--border);
-
+      font-family: 'Sora', sans-serif;
+      height: 100vh;
       display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
 
+    /* ── TOP BAR ── */
+    .topbar {
+      display: flex;
       align-items: center;
-
       justify-content: space-between;
-
-      padding: 0 24px;
-
-      position: relative;
-
-      z-index: 10;
-
+      padding: 12px 24px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
     }
- 
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
     .logo {
-
-      display: flex;
-
-      align-items: center;
-
-      gap: 10px;
-
-      font-weight: 600;
-
-      font-size: 15px;
-
-      letter-spacing: -0.01em;
-
-    }
- 
-    .logo-icon {
-
-      width: 28px; height: 28px;
-
+      width: 34px; height: 34px;
       background: linear-gradient(135deg, var(--accent), var(--accent2));
-
       border-radius: 8px;
-
       display: flex; align-items: center; justify-content: center;
-
-      font-size: 13px;
-
+      font-size: 18px;
     }
- 
-    .header-meta {
+    .topbar h1 { font-size: 15px; font-weight: 600; letter-spacing: 0.02em; }
+    .topbar h1 span { color: var(--accent); }
 
-      display: flex;
-
-      align-items: center;
-
-      gap: 20px;
-
+    .status-pill {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(0,212,255,0.08);
+      border: 1px solid rgba(0,212,255,0.2);
+      padding: 4px 12px; border-radius: 20px;
+      font-size: 12px; color: var(--accent2);
+      font-family: 'IBM Plex Mono', monospace;
     }
- 
     .status-dot {
-
-      display: flex;
-
-      align-items: center;
-
-      gap: 6px;
-
-      font-size: 12px;
-
-      color: var(--muted);
-
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent2);
+      animation: pulse 2s infinite;
     }
- 
-    .dot {
-
-      width: 7px; height: 7px;
-
-      border-radius: 50%;
-
-      background: var(--success);
-
-      box-shadow: 0 0 6px var(--success);
-
-      animation: pulse 2s ease-in-out infinite;
-
-    }
- 
     @keyframes pulse {
-
-      0%, 100% { opacity: 1; }
-
-      50% { opacity: 0.4; }
-
+      0%,100% { opacity: 1; } 50% { opacity: 0.3; }
     }
- 
-    .header-badge {
 
-      background: var(--panel);
-
-      border: 1px solid var(--border);
-
-      border-radius: 6px;
-
-      padding: 4px 10px;
-
-      font-size: 11px;
-
-      font-family: 'DM Mono', monospace;
-
-      color: var(--muted);
-
-    }
- 
-    /* ── MAIN LAYOUT ── */
-
-    .workspace {
-
-      display: grid;
-
-      grid-template-columns: 1fr 380px;
-
-      height: calc(100vh - var(--header-h));
-
-    }
- 
-    /* ── PANEL SHARED ── */
-
-    .pane {
-
+    /* ── TOGGLE TABS ── */
+    .tabs {
       display: flex;
-
-      flex-direction: column;
-
-      overflow: hidden;
-
-    }
- 
-    .pane-header {
-
-      height: 44px;
-
-      background: var(--surface);
-
       border-bottom: 1px solid var(--border);
-
-      display: flex;
-
-      align-items: center;
-
-      padding: 0 18px;
-
-      gap: 10px;
-
+      background: var(--panel);
       flex-shrink: 0;
-
     }
- 
-    .pane-title {
-
-      font-size: 12px;
-
-      font-weight: 500;
-
-      color: var(--muted);
-
-      letter-spacing: 0.06em;
-
-      text-transform: uppercase;
-
+    .tab-btn {
+      padding: 10px 24px;
+      background: none; border: none;
+      color: var(--muted); cursor: pointer;
+      font-family: 'Sora', sans-serif;
+      font-size: 13px; font-weight: 600;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
     }
- 
-    .pane-tag {
-
-      margin-left: auto;
-
-      font-size: 10px;
-
-      font-family: 'DM Mono', monospace;
-
-      background: color-mix(in srgb, var(--accent) 12%, transparent);
-
+    .tab-btn.active {
       color: var(--accent);
-
-      border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
-
-      border-radius: 4px;
-
-      padding: 2px 7px;
-
+      border-bottom-color: var(--accent);
     }
- 
-    /* ── LEFT: POWER BI ── */
 
-    .pbi-pane {
-
-      border-right: 1px solid var(--border);
-
-    }
- 
-    .pbi-pane .pane-tag { background: color-mix(in srgb, #f2c94c 10%, transparent); color: #f2c94c; border-color: color-mix(in srgb, #f2c94c 25%, transparent); }
- 
-    .pbi-body {
-
-      flex: 1;
-
-      position: relative;
-
-      background: var(--panel);
-
-    }
- 
-    .pbi-body iframe {
-
-      width: 100%;
-
-      height: 100%;
-
-      border: none;
-
-      display: block;
-
-    }
- 
-    /* Placeholder shown when no URL is set */
-
-    .pbi-placeholder {
-
-      position: absolute;
-
-      inset: 0;
-
+    /* ── MAIN LAYOUT ── */
+    .main {
       display: flex;
-
-      flex-direction: column;
-
-      align-items: center;
-
-      justify-content: center;
-
-      gap: 16px;
-
-      padding: 40px;
-
-      text-align: center;
-
-    }
- 
-    .pbi-placeholder.hidden { display: none; }
- 
-    .placeholder-icon {
-
-      width: 64px; height: 64px;
-
-      background: color-mix(in srgb, #f2c94c 10%, transparent);
-
-      border: 1px solid color-mix(in srgb, #f2c94c 25%, transparent);
-
-      border-radius: 16px;
-
-      display: flex; align-items: center; justify-content: center;
-
-      font-size: 28px;
-
-    }
- 
-    .placeholder-title {
-
-      font-size: 16px;
-
-      font-weight: 500;
-
-      color: var(--text);
-
-    }
- 
-    .placeholder-sub {
-
-      font-size: 13px;
-
-      color: var(--muted);
-
-      max-width: 320px;
-
-      line-height: 1.6;
-
-    }
- 
-    .url-input-row {
-
-      display: flex;
-
-      gap: 8px;
-
-      width: 100%;
-
-      max-width: 480px;
-
-    }
- 
-    .url-input {
-
       flex: 1;
-
-      background: var(--surface);
-
-      border: 1px solid var(--border);
-
-      border-radius: 8px;
-
-      padding: 9px 12px;
-
-      font-size: 12px;
-
-      font-family: 'DM Mono', monospace;
-
-      color: var(--text);
-
-      outline: none;
-
-      transition: border-color 0.2s;
-
-    }
- 
-    .url-input::placeholder { color: var(--muted); }
-
-    .url-input:focus { border-color: var(--accent); }
- 
-    .url-btn {
-
-      background: var(--accent);
-
-      color: #fff;
-
-      border: none;
-
-      border-radius: 8px;
-
-      padding: 9px 16px;
-
-      font-size: 12px;
-
-      font-weight: 500;
-
-      cursor: pointer;
-
-      transition: opacity 0.15s;
-
-      white-space: nowrap;
-
-    }
-
-    .url-btn:hover { opacity: 0.85; }
- 
-    /* ── RIGHT: CHATBOT ── */
-
-    .chat-pane {
-
-      background: var(--bg);
-
-    }
- 
-    .chat-body {
-
-      flex: 1;
-
-      display: flex;
-
-      flex-direction: column;
-
       overflow: hidden;
-
     }
- 
-    /* Chat messages area */
 
-    .messages {
-
+    /* ── POWER BI PANEL ── */
+    .pbi-panel {
       flex: 1;
-
-      overflow-y: auto;
-
-      padding: 20px 16px;
-
+      border-right: 1px solid var(--border);
       display: flex;
-
       flex-direction: column;
-
-      gap: 14px;
-
-      scrollbar-width: thin;
-
-      scrollbar-color: var(--border) transparent;
-
+      min-width: 0;
     }
- 
-    .messages::-webkit-scrollbar { width: 4px; }
-
-    .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
- 
-    /* Message bubbles */
-
-    .msg { display: flex; gap: 10px; align-items: flex-end; }
-
-    .msg.user { flex-direction: row-reverse; }
- 
-    .avatar {
-
-      width: 28px; height: 28px;
-
-      border-radius: 8px;
-
-      display: flex; align-items: center; justify-content: center;
-
-      font-size: 12px;
-
-      flex-shrink: 0;
-
-    }
- 
-    .avatar.bot {
-
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-
-    }
- 
-    .avatar.user {
-
+    .pbi-header {
+      padding: 10px 16px;
       background: var(--panel);
-
-      border: 1px solid var(--border);
-
-      color: var(--muted);
-
-    }
- 
-    .bubble {
-
-      max-width: 78%;
-
-      padding: 10px 13px;
-
-      border-radius: 12px;
-
-      font-size: 13px;
-
-      line-height: 1.6;
-
-    }
- 
-    .msg.bot .bubble {
-
-      background: var(--panel);
-
-      border: 1px solid var(--border);
-
-      border-bottom-left-radius: 4px;
-
-      color: var(--text);
-
-    }
- 
-    .msg.user .bubble {
-
-      background: var(--accent);
-
-      border-bottom-right-radius: 4px;
-
-      color: #fff;
-
-    }
- 
-    .msg-time {
-
-      font-size: 10px;
-
-      color: var(--muted);
-
-      font-family: 'DM Mono', monospace;
-
-      padding: 0 4px;
-
-      margin-bottom: 2px;
-
-    }
- 
-    /* Typing indicator */
-
-    .typing-dots {
-
-      display: flex; gap: 4px; align-items: center; padding: 4px 2px;
-
-    }
-
-    .typing-dots span {
-
-      width: 6px; height: 6px;
-
-      border-radius: 50%;
-
-      background: var(--muted);
-
-      animation: bounce 1.2s ease-in-out infinite;
-
-    }
-
-    .typing-dots span:nth-child(2) { animation-delay: 0.15s; }
-
-    .typing-dots span:nth-child(3) { animation-delay: 0.3s; }
-
-    @keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
- 
-    .typing-msg { display: none; }
-
-    .typing-msg.show { display: flex; }
- 
-    /* Suggested questions */
-
-    .suggestions {
-
-      padding: 0 16px 12px;
-
-      display: flex;
-
-      flex-direction: column;
-
-      gap: 6px;
-
-    }
- 
-    .suggestions-label {
-
-      font-size: 10px;
-
-      font-weight: 500;
-
-      color: var(--muted);
-
-      text-transform: uppercase;
-
-      letter-spacing: 0.06em;
-
-      margin-bottom: 2px;
-
-    }
- 
-    .suggestion-btn {
-
-      text-align: left;
-
-      background: var(--panel);
-
-      border: 1px solid var(--border);
-
-      border-radius: 8px;
-
-      padding: 8px 12px;
-
-      font-size: 12px;
-
-      color: var(--muted);
-
-      cursor: pointer;
-
-      transition: border-color 0.15s, color 0.15s;
-
-    }
- 
-    .suggestion-btn:hover {
-
-      border-color: var(--accent);
-
-      color: var(--text);
-
-    }
- 
-    /* Chat input */
-
-    .chat-input-area {
-
-      border-top: 1px solid var(--border);
-
-      padding: 12px 14px;
-
-      background: var(--surface);
-
-      display: flex;
-
-      align-items: flex-end;
-
-      gap: 8px;
-
-    }
- 
-    .chat-input {
-
-      flex: 1;
-
-      background: var(--panel);
-
-      border: 1px solid var(--border);
-
-      border-radius: 10px;
-
-      padding: 9px 12px;
-
-      font-size: 13px;
-
-      color: var(--text);
-
-      font-family: 'DM Sans', sans-serif;
-
-      resize: none;
-
-      outline: none;
-
-      line-height: 1.5;
-
-      max-height: 100px;
-
-      transition: border-color 0.2s;
-
-      scrollbar-width: none;
-
-    }
-
-    .chat-input::-webkit-scrollbar { display: none; }
-
-    .chat-input::placeholder { color: var(--muted); }
-
-    .chat-input:focus { border-color: var(--accent); }
- 
-    .send-btn {
-
-      width: 36px; height: 36px;
-
-      background: var(--accent);
-
-      border: none;
-
-      border-radius: 10px;
-
-      color: #fff;
-
-      cursor: pointer;
-
-      display: flex; align-items: center; justify-content: center;
-
-      flex-shrink: 0;
-
-      transition: opacity 0.15s, transform 0.1s;
-
-    }
-
-    .send-btn:hover { opacity: 0.85; transform: scale(1.04); }
-
-    .send-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
- 
-    .send-btn svg { width: 15px; height: 15px; }
- 
-    /* ── CHATBOT IFRAME MODE ── */
-
-    .chatbot-iframe-wrapper {
-
-      flex: 1;
-
-      position: relative;
-
-      display: none;
-
-    }
-
-    .chatbot-iframe-wrapper.active { display: block; }
-
-    .chatbot-iframe-wrapper iframe {
-
-      width: 100%; height: 100%; border: none;
-
-    }
- 
-    /* Power BI iframe */
-
-    #pbi-frame { display: none; width: 100%; height: 100%; border: none; }
-
-    #pbi-frame.active { display: block; }
- 
-    /* ── SETTINGS DRAWER ── */
-
-    .settings-btn {
-
-      background: var(--panel);
-
-      border: 1px solid var(--border);
-
-      border-radius: 6px;
-
-      width: 28px; height: 28px;
-
-      display: flex; align-items: center; justify-content: center;
-
-      cursor: pointer;
-
-      color: var(--muted);
-
-      transition: color 0.15s, border-color 0.15s;
-
-      flex-shrink: 0;
-
-    }
-
-    .settings-btn:hover { color: var(--text); border-color: var(--muted); }
- 
-    /* Chatbot API config inline */
-
-    .api-config {
-
-      background: var(--panel);
-
       border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+      font-family: 'IBM Plex Mono', monospace;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .pbi-header::before {
+      content: ''; width: 8px; height: 8px;
+      border-radius: 50%; background: var(--accent);
+    }
+    #pbi-iframe {
+      flex: 1; border: none; width: 100%;
+      background: #111;
+    }
 
-      padding: 12px 16px;
-
-      display: none;
-
+    /* ── CHAT PANEL ── */
+    .chat-panel {
+      width: 400px;
+      flex-shrink: 0;
+      display: flex;
       flex-direction: column;
-
-      gap: 8px;
-
+      background: var(--panel);
     }
 
-    .api-config.open { display: flex; }
-
-    .api-config label { font-size: 11px; color: var(--muted); }
-
-    .api-config input, .api-config select {
-
-      background: var(--surface);
-
-      border: 1px solid var(--border);
-
-      border-radius: 6px;
-
-      padding: 7px 10px;
-
-      font-size: 12px;
-
+    .chat-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 600;
+      display: flex; align-items: center; gap: 8px;
       color: var(--text);
+    }
+    .chat-header-icon { font-size: 16px; }
 
-      font-family: 'DM Mono', monospace;
+    /* ── MESSAGES ── */
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    #messages::-webkit-scrollbar { width: 4px; }
+    #messages::-webkit-scrollbar-track { background: transparent; }
+    #messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-      outline: none;
-
+    .msg {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      animation: fadeUp 0.25s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
-    .api-config input:focus, .api-config select:focus { border-color: var(--accent); }
+    .msg-label {
+      font-size: 10px;
+      font-family: 'IBM Plex Mono', monospace;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0 4px;
+    }
+    .msg.user .msg-label { text-align: right; }
 
-    .api-config .cfg-row { display: flex; gap: 8px; }
+    .msg-bubble {
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      font-size: 13.5px;
+      line-height: 1.6;
+      max-width: 100%;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .msg.user .msg-bubble {
+      background: var(--user-bubble);
+      border: 1px solid rgba(245,166,35,0.15);
+      border-bottom-right-radius: 4px;
+      align-self: flex-end;
+    }
+    .msg.ai .msg-bubble {
+      background: var(--ai-bubble);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+      align-self: flex-start;
+    }
 
-    .api-config .cfg-row input { flex: 1; }
+    /* typing dots */
+    .typing-dots span {
+      display: inline-block;
+      width: 6px; height: 6px;
+      background: var(--accent2);
+      border-radius: 50%;
+      margin: 0 2px;
+      animation: bounce 1.2s infinite;
+    }
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce {
+      0%,80%,100% { transform: translateY(0); opacity: 0.4; }
+      40% { transform: translateY(-6px); opacity: 1; }
+    }
 
-    .api-apply-btn {
-
-      background: var(--accent);
-
-      color: #fff;
-
-      border: none;
-
+    /* ── QUICK PROMPTS ── */
+    .quick-prompts {
+      padding: 10px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      border-top: 1px solid var(--border);
+    }
+    .qp-btn {
+      background: rgba(245,166,35,0.06);
+      border: 1px solid rgba(245,166,35,0.2);
+      color: var(--accent);
+      padding: 5px 10px;
       border-radius: 6px;
-
-      padding: 7px 14px;
-
-      font-size: 12px;
-
-      font-weight: 500;
-
+      font-size: 11px;
+      font-family: 'Sora', sans-serif;
       cursor: pointer;
-
+      transition: all 0.15s;
+    }
+    .qp-btn:hover {
+      background: rgba(245,166,35,0.15);
+      border-color: var(--accent);
     }
 
-    .api-apply-btn:hover { opacity: 0.85; }
- 
-    /* Mobile responsive */
+    /* ── INPUT BAR ── */
+    .input-bar {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      background: var(--bg);
+    }
+    #user-input {
+      flex: 1;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-family: 'Sora', sans-serif;
+      font-size: 13px;
+      resize: none;
+      outline: none;
+      transition: border-color 0.2s;
+      max-height: 120px;
+    }
+    #user-input:focus { border-color: var(--accent2); }
+    #user-input::placeholder { color: var(--muted); }
 
+    #send-btn {
+      background: linear-gradient(135deg, var(--accent), #e8901a);
+      border: none;
+      border-radius: 8px;
+      width: 42px; height: 42px;
+      cursor: pointer;
+      color: #000;
+      font-size: 18px;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.15s, opacity 0.15s;
+      align-self: flex-end;
+    }
+    #send-btn:hover { transform: scale(1.06); }
+    #send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    /* ── MOBILE: stacked layout ── */
     @media (max-width: 768px) {
-
-      .workspace {
-
-        grid-template-columns: 1fr;
-
-        grid-template-rows: 1fr 1fr;
-
-        height: calc(100vh - var(--header-h));
-
-      }
-
-      .pbi-pane { border-right: none; border-bottom: 1px solid var(--border); }
-
+      .main { flex-direction: column; }
+      .pbi-panel { border-right: none; border-bottom: 1px solid var(--border); height: 45vh; }
+      .chat-panel { width: 100%; }
+      #pbi-iframe { height: 100%; }
     }
-</style>
+
+    /* ── FULL CHAT MODE ── */
+    .full-chat .pbi-panel { display: none; }
+    .full-chat .chat-panel { width: 100%; }
+
+    /* ── FULL REPORT MODE ── */
+    .full-report .chat-panel { display: none; }
+    .full-report .pbi-panel { border-right: none; }
+  </style>
 </head>
 <body>
- 
-<!-- ── HEADER ── -->
-<header>
-<div class="logo">
-<div class="logo-icon">🏠</div>
 
-    Real Estate Intelligence Hub
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">📊</div>
+    <h1>Power BI <span>AI Assistant</span></h1>
+  </div>
+  <div class="status-pill">
+    <div class="status-dot"></div>
+    Groq AI Connected
+  </div>
 </div>
-<div class="header-meta">
-<div class="status-dot">
-<span class="dot"></span>
 
-      Live data
+<div class="tabs">
+  <button class="tab-btn active" onclick="setView('split')">⬛ Split View</button>
+  <button class="tab-btn" onclick="setView('full-report')">📊 Report Only</button>
+  <button class="tab-btn" onclick="setView('full-chat')">💬 Chat Only</button>
 </div>
-<div class="header-badge">Power BI + AI Assistant</div>
-</div>
-</header>
- 
-<!-- ── WORKSPACE ── -->
-<div class="workspace">
- 
-  <!-- LEFT: Power BI -->
-<div class="pane pbi-pane">
-<div class="pane-header">
-<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f2c94c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-<span class="pane-title">Power BI Dashboard</span>
-<span class="pane-tag">powerbi</span>
-</div>
-<div class="pbi-body">
-<!-- Iframe (hidden until URL is set) -->
-<iframe id="pbi-frame" allowfullscreen></iframe>
- 
-      <!-- Placeholder -->
-<div class="pbi-placeholder" id="pbi-placeholder">
-<div class="placeholder-icon">📊</div>
-<div class="placeholder-title">Paste your Power BI embed URL</div>
-<div class="placeholder-sub">
 
-          In Power BI: <strong>File → Embed report → Publish to web (public)</strong> — copy the iframe src URL and paste it below.
+<div class="main" id="main-layout">
+
+  <!-- Power BI Report -->
+  <div class="pbi-panel">
+    <div class="pbi-header">powerbi.microsoft.com · Live Report</div>
+    <iframe
+      id="pbi-iframe"
+      src="https://app.powerbi.com/reportEmbed?reportId=19ed9360-102d-45f1-baefe7e8b34a271a&autoAuth=true&ctid=db42e3a7-6b81-4222-8d6c-b384cd28e5ed"
+      allowFullScreen="true">
+    </iframe>
+  </div>
+
+  <!-- Chat Panel -->
+  <div class="chat-panel">
+    <div class="chat-header">
+      <span class="chat-header-icon">🤖</span>
+      Ask about your data
+    </div>
+
+    <div id="messages">
+      <div class="msg ai">
+        <div class="msg-label">AI Assistant</div>
+        <div class="msg-bubble">👋 Hello! I'm your Power BI AI assistant powered by Groq AI (Free).
+
+I can help you:
+• Explain trends and patterns in your report
+• Answer questions about your data
+• Suggest visualizations
+• Summarize KPIs and insights
+
+Ask me anything about your dashboard!</div>
+      </div>
+    </div>
+
+    <div class="quick-prompts">
+      <button class="qp-btn" onclick="quickSend('Summarize the key insights from this report')">📋 Summarize</button>
+      <button class="qp-btn" onclick="quickSend('What are the top performing metrics?')">📈 Top Metrics</button>
+      <button class="qp-btn" onclick="quickSend('Explain the trend shown in the data')">📉 Trends</button>
+      <button class="qp-btn" onclick="quickSend('What actions should I take based on this data?')">💡 Actions</button>
+    </div>
+
+    <div class="input-bar">
+      <textarea
+        id="user-input"
+        placeholder="Ask about your Power BI data..."
+        rows="1"
+        onkeydown="handleKey(event)"
+        oninput="autoResize(this)">
+      </textarea>
+      <button id="send-btn" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
 </div>
-<div class="url-input-row">
-<input class="url-input" id="pbi-url-input" type="text" placeholder="https://app.powerbi.com/reportEmbed?reportId=19ed9360-102d-45f1-baef-e7e8b34a271a&autoAuth=true&ctid=db42e3a7-6b81-4222-8d6c-b384cd28e5ed"/>
-<button class="url-btn" onclick="loadPBI()">Load</button>
-</div>
-</div>
-</div>
-</div>
- 
-  <!-- RIGHT: Chatbot -->
-<div class="pane chat-pane">
-<div class="pane-header">
-<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-<span class="pane-title">AI Assistant</span>
-<span class="pane-tag" id="mode-tag">built-in</span>
-<button class="settings-btn" onclick="toggleConfig()" title="Configure chatbot">
-<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-</button>
-</div>
- 
-    <!-- Config panel -->
-<div class="api-config" id="api-config">
-<label>Mode</label>
-<select id="chat-mode" onchange="onModeChange()">
-<option value="builtin">Built-in (no API key needed)</option>
-<option value="anthropic">Anthropic Claude API</option>
-<option value="iframe">Embed external chatbot (iframe URL)</option>
-</select>
-<div id="key-row" style="display:none">
-<label>Anthropic API Key</label>
-<div class="cfg-row">
-<input type="password" id="api-key-input" placeholder="sk-ant-..." />
-</div>
-</div>
-<div id="iframe-row" style="display:none">
-<label>Chatbot iframe URL (Botpress, Typebot, etc.)</label>
-<div class="cfg-row">
-<input type="text" id="chatbot-iframe-url" placeholder="https://cdn.botpress.cloud/webchat/..." />
-</div>
-</div>
-<button class="api-apply-btn" onclick="applyConfig()">Apply</button>
-</div>
- 
-    <!-- Native chat UI -->
-<div class="chat-body" id="native-chat">
-<div class="messages" id="messages">
-<div class="msg bot">
-<div class="avatar bot">✦</div>
-<div>
-<div class="bubble">Hi! I'm your real estate data assistant. Ask me anything about the properties in your dashboard — pricing, sectors, BHK types, or trends.</div>
-<div class="msg-time" id="welcome-time"></div>
-</div>
-</div>
-<div class="typing-msg" id="typing-indicator">
-<div class="msg bot">
-<div class="avatar bot">✦</div>
-<div class="bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>
-</div>
-</div>
-</div>
- 
-      <!-- Suggestions -->
-<div class="suggestions" id="suggestions">
-<div class="suggestions-label">Try asking</div>
-<button class="suggestion-btn" onclick="sendSuggestion(this)">What's the average price per sqft across sectors?</button>
-<button class="suggestion-btn" onclick="sendSuggestion(this)">Which BHK type has the most listings?</button>
-<button class="suggestion-btn" onclick="sendSuggestion(this)">Show properties under 50 lakhs</button>
-</div>
- 
-      <!-- Input -->
-<div class="chat-input-area">
-<textarea class="chat-input" id="chat-input" rows="1" placeholder="Ask about your property data…" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-<button class="send-btn" id="send-btn" onclick="sendMessage()">
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-</button>
-</div>
-</div>
- 
-    <!-- External iframe chatbot -->
-<div class="chatbot-iframe-wrapper" id="iframe-chat">
-<iframe id="chatbot-iframe" allow="microphone; camera"></iframe>
-</div>
-</div>
- 
-</div>
- 
+
 <script>
+  // ── CONFIG — GROQ (Free, no quota) ──
+  // 👉 Get free key at: https://console.groq.com (no credit card needed)
+  const GROQ_API_KEY = "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";
+  const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+  const GROQ_MODEL = "llama-3.1-8b-instant";
 
-  // ── TIME HELPER ──
+  const SYSTEM_CONTEXT = `You are an expert Power BI data analyst assistant.
+The user is viewing a Power BI report showing student/faculty data (Count of City by Name and Stream) across streams like Banking, BMS, Business, Commerce, Design, Economics, Fashion, Finance, Hotel, Law, Legal Studies etc.
+Help them understand trends, KPIs, and insights. Be concise, analytical, and use bullet points where helpful.
+Always give actionable data-driven recommendations.`;
 
-  function now() {
+  let chatHistory = [{ role: "system", content: SYSTEM_CONTEXT }];
+  let isLoading = false;
 
-    return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-  }
-
-  document.getElementById('welcome-time').textContent = now();
- 
-  // ── POWER BI ──
-
-  function loadPBI() {
-
-    const url = document.getElementById('pbi-url-input').value.trim();
-
-    if (!url) return alert('Please paste your Power BI embed URL.');
-
-    const frame = document.getElementById('pbi-frame');
-
-    frame.src = url;
-
-    frame.classList.add('active');
-
-    document.getElementById('pbi-placeholder').classList.add('hidden');
-
-  }
- 
-  // ── SETTINGS ──
-
-  function toggleConfig() {
-
-    document.getElementById('api-config').classList.toggle('open');
-
-  }
- 
-  function onModeChange() {
-
-    const mode = document.getElementById('chat-mode').value;
-
-    document.getElementById('key-row').style.display = mode === 'anthropic' ? 'block' : 'none';
-
-    document.getElementById('iframe-row').style.display = mode === 'iframe' ? 'block' : 'none';
-
-  }
- 
-  function applyConfig() {
-
-    const mode = document.getElementById('chat-mode').value;
-
-    document.getElementById('api-config').classList.remove('open');
- 
-    if (mode === 'iframe') {
-
-      const iframeUrl = document.getElementById('chatbot-iframe-url').value.trim();
-
-      if (!iframeUrl) return alert('Please enter a chatbot iframe URL.');
-
-      document.getElementById('chatbot-iframe').src = iframeUrl;
-
-      document.getElementById('native-chat').style.display = 'none';
-
-      document.getElementById('iframe-chat').classList.add('active');
-
-      document.getElementById('mode-tag').textContent = 'iframe';
-
-    } else {
-
-      document.getElementById('native-chat').style.display = 'flex';
-
-      document.getElementById('iframe-chat').classList.remove('active');
-
-      document.getElementById('mode-tag').textContent = mode === 'anthropic' ? 'claude api' : 'built-in';
-
-    }
-
-  }
- 
-  // ── CHAT LOGIC ──
-
-  let apiKey = '';
-
-  let isThinking = false;
- 
-  const SYSTEM_PROMPT = `You are a real estate data assistant embedded in a Power BI dashboard showing property listings in India (Gurugram/Delhi NCR area). The dashboard has data on ~2,875 properties with prices from 16 to 1,500 lakhs. Properties span various sectors, BHK types (1–5 BHK), possession statuses (Ready Soon, Ready to Move, Under Construction), facing directions, and floor categories. Average price per sqft is around ₹9,390. Help users interpret the dashboard data, answer questions about market trends, compare sectors, understand BHK pricing, or filter insights. Keep responses concise and useful.`;
- 
-  function autoResize(el) {
-
-    el.style.height = 'auto';
-
-    el.style.height = Math.min(el.scrollHeight, 100) + 'px';
-
-  }
- 
-  function handleKey(e) {
-
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-
-  }
- 
-  function sendSuggestion(btn) {
-
-    document.getElementById('chat-input').value = btn.textContent;
-
-    document.getElementById('suggestions').style.display = 'none';
-
-    sendMessage();
-
-  }
- 
-  function appendMsg(role, text) {
-
-    const messages = document.getElementById('messages');
-
-    const typing = document.getElementById('typing-indicator');
- 
-    const div = document.createElement('div');
-
-    div.className = `msg ${role}`;
-
-    div.innerHTML = `
-<div class="avatar ${role}">${role === 'bot' ? '✦' : '👤'}</div>
-<div>
-<div class="bubble">${text.replace(/\n/g, '<br>')}</div>
-<div class="msg-time">${now()}</div>
-</div>
-
-    `;
-
-    messages.insertBefore(div, typing);
-
-    messages.scrollTop = messages.scrollHeight;
-
-  }
- 
-  function setTyping(show) {
-
-    document.getElementById('typing-indicator').classList.toggle('show', show);
-
-    const msgs = document.getElementById('messages');
-
-    msgs.scrollTop = msgs.scrollHeight;
-
-  }
- 
+  // ── SEND MESSAGE ──
   async function sendMessage() {
-
-    if (isThinking) return;
-
-    const input = document.getElementById('chat-input');
-
+    const input = document.getElementById("user-input");
     const text = input.value.trim();
+    if (!text || isLoading) return;
 
-    if (!text) return;
- 
-    input.value = '';
+    input.value = "";
+    input.style.height = "auto";
+    addMessage("user", text);
+    chatHistory.push({ role: "user", content: text });
 
-    input.style.height = 'auto';
+    const typingId = showTyping();
+    isLoading = true;
+    document.getElementById("send-btn").disabled = true;
 
-    document.getElementById('suggestions').style.display = 'none';
- 
-    appendMsg('user', text);
+    // API key is configured — proceeding with request
 
-    isThinking = true;
+    try {
+      const response = await fetch(GROQ_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + GROQ_API_KEY
+        },
+        body: JSON.stringify({
+          model: GROQ_MODEL,
+          messages: chatHistory,
+          temperature: 0.7,
+          max_tokens: 800
+        })
+      });
 
-    setTyping(true);
+      const data = await response.json();
+      removeTyping(typingId);
 
-    document.getElementById('send-btn').disabled = true;
- 
-    const mode = document.getElementById('chat-mode').value;
- 
-    if (mode === 'anthropic') {
-
-      const key = document.getElementById('api-key-input').value.trim();
-
-      if (!key) {
-
-        setTyping(false);
-
-        appendMsg('bot', 'Please enter your Anthropic API key in the settings (⚙ gear icon).');
-
-        isThinking = false;
-
-        document.getElementById('send-btn').disabled = false;
-
-        return;
-
+      if (data.choices?.[0]?.message?.content) {
+        const reply = data.choices[0].message.content;
+        addMessage("ai", reply);
+        chatHistory.push({ role: "assistant", content: reply });
+      } else if (data.error) {
+        addMessage("ai", "⚠️ Groq Error: " + data.error.message);
+      } else {
+        addMessage("ai", "⚠️ No response. Please try again.");
       }
-
-      try {
-
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
-
-          method: 'POST',
-
-          headers: {
-
-            'Content-Type': 'application/json',
-
-            'x-api-key': key,
-
-            'anthropic-version': '2023-06-01',
-
-            'anthropic-dangerous-direct-browser-access': 'true'
-
-          },
-
-          body: JSON.stringify({
-
-            model: 'claude-sonnet-4-20250514',
-
-            max_tokens: 512,
-
-            system: SYSTEM_PROMPT,
-
-            messages: [{ role: 'user', content: text }]
-
-          })
-
-        });
-
-        const data = await res.json();
-
-        const reply = data.content?.[0]?.text || 'No response received.';
-
-        setTyping(false);
-
-        appendMsg('bot', reply);
-
-      } catch (e) {
-
-        setTyping(false);
-
-        appendMsg('bot', 'Error connecting to Claude API. Check your API key and try again.');
-
-      }
-
-    } else {
-
-      // Built-in responses
-
-      const reply = builtinReply(text);
-
-      await new Promise(r => setTimeout(r, 800 + Math.random() * 600));
-
-      setTyping(false);
-
-      appendMsg('bot', reply);
-
+    } catch (err) {
+      removeTyping(typingId);
+      addMessage("ai", "⚠️ Network error: " + err.message);
     }
- 
-    isThinking = false;
 
-    document.getElementById('send-btn').disabled = false;
-
+    isLoading = false;
+    document.getElementById("send-btn").disabled = false;
   }
- 
-  // ── BUILT-IN SMART RESPONSES ──
 
-  function builtinReply(q) {
+  function quickSend(text) {
+    document.getElementById("user-input").value = text;
+    sendMessage();
+  }
 
-    const l = q.toLowerCase();
+  // ── UI HELPERS ──
+  function addMessage(role, text) {
+    const container = document.getElementById("messages");
+    const div = document.createElement("div");
+    div.className = `msg ${role}`;
+    div.innerHTML = `
+      <div class="msg-label">${role === "user" ? "You" : "AI Assistant"}</div>
+      <div class="msg-bubble">${escapeHtml(text)}</div>
+    `;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+  }
 
-    if (l.includes('average') && l.includes('price')) return '📊 The average price per sqft in this dataset is around ₹9,390. Sector 76 tends to have higher-end properties (₹190–335 lakhs), while Sector 104 shows more affordable options starting at ₹20 lakhs.';
+  function showTyping() {
+    const id = "typing-" + Date.now();
+    const container = document.getElementById("messages");
+    const div = document.createElement("div");
+    div.className = "msg ai";
+    div.id = id;
+    div.innerHTML = `
+      <div class="msg-label">AI Assistant</div>
+      <div class="msg-bubble typing-dots">
+        <span></span><span></span><span></span>
+      </div>`;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+    return id;
+  }
 
-    if (l.includes('cheapest') || l.includes('affordable') || l.includes('under 50') || l.includes('budget')) return '💰 The cheapest listings start around ₹16 lakhs (1 BHK). Zara Aavaas in Sector 104 and Surat Nagar 1 have several 1 BHK units between ₹20–40 lakhs. Use the Price_Lakh slider on the dashboard to filter.';
+  function removeTyping(id) {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+  }
 
-    if (l.includes('bhk') || l.includes('bedroom')) return '🏠 The dashboard shows 1–5 BHK listings. 3 BHK is the most popular configuration. Use the BHK_Type filter on the left panel to isolate any type. Larger BHKs (4–5 BHK) tend to appear in premium sectors.';
+  function escapeHtml(text) {
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\n/g, "<br>");
+  }
 
-    if (l.includes('sector')) return '📍 Multiple sectors are covered including Sector 9, 76, 104, 106, Nirvana Country, Bhawani Enclave, and more. Sector 76 has several premium Whiteland projects. You can check the Sector filter on the dashboard to drill down.';
+  function handleKey(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
 
-    if (l.includes('possession') || l.includes('ready') || l.includes('construction')) return '🏗️ Properties are categorised as: Ready to Move, Ready Soon, Under Construction, and Unknown. Use the Possession_Status filter in the dashboard to see only move-in-ready options.';
+  function autoResize(el) {
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 120) + "px";
+  }
 
-    if (l.includes('facing') || l.includes('direction') || l.includes('north') || l.includes('east')) return '🧭 Facing directions available: East, North, North-East, North-West, South, and more. North and East-facing units are typically preferred. Filter using Facing_Direction on the dashboard.';
+  // ── VIEW TOGGLE ──
+  function setView(mode) {
+    const layout = document.getElementById("main-layout");
+    layout.className = "main " + (mode === "split" ? "" : mode);
 
-    if (l.includes('floor')) return '🏢 Floor categories include Ground, Low (1–3), Mid (4–8), High (9–15), Very High (16+), and Unknown. Use the Floor_Category filter to narrow listings by floor preference.';
-
-    if (l.includes('total') || l.includes('count') || l.includes('how many')) return '📈 The dashboard shows 2,875 total property listings. You can refine this count using any of the filters — sector, BHK type, price range, or possession status.';
-
-    if (l.includes('expensive') || l.includes('luxury') || l.includes('premium')) return '💎 The priciest listing goes up to ₹1,500 lakhs. Whiteland The Aspen in Sector 76 at ₹1,900 sqft for 3 BHK (₹335 lakhs) is among the premium options. Wings Apartment in Sector 9 has a 4 BHK at ₹120 lakhs.';
-
-    if (l.includes('hello') || l.includes('hi') || l.includes('hey')) return 'Hello! 👋 I\'m connected to your real estate dashboard. Ask me about property prices, sectors, BHK types, possession status, or any other data you see on the dashboard.';
-
-    if (l.includes('help') || l.includes('what can you')) return '🤖 I can help you:\n• Interpret charts and metrics on the dashboard\n• Filter insights by sector, price, or BHK type\n• Explain possession status or floor categories\n• Compare properties or find the best deal\n\nJust ask naturally!';
-
-    return '🔍 Good question! Based on the dashboard data, I\'d suggest using the filters on the left panel to explore that. You can combine Sector + BHK_Type + Price_Lakh sliders to get a targeted view. Want me to explain any specific metric you see?';
-
+    document.querySelectorAll(".tab-btn").forEach((btn, i) => {
+      btn.classList.toggle("active",
+        (i === 0 && mode === "split") ||
+        (i === 1 && mode === "full-report") ||
+        (i === 2 && mode === "full-chat")
+      );
+    });
   }
 </script>
 </body>
 </html>
- 
